@@ -56,6 +56,25 @@
             cursor: pointer;
         }
 
+        /* NEW: Slideshow Buttons */
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            padding: 16px;
+            margin-top: -50px;
+            color: white;
+            font-weight: bold;
+            font-size: 40px;
+            transition: 0.6s ease;
+            user-select: none;
+            text-decoration: none;
+        }
+        .prev { left: 10px; }
+        .next { right: 10px; }
+        .prev:hover, .next:hover { background-color: rgba(255, 255, 255, 0.2); border-radius: 5px; }
+
         form { display: flex; flex-direction: column; gap: 10px; }
         input, textarea, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
         button { background-color: var(--primary-color); color: white; border: none; cursor: pointer; font-weight: bold; }
@@ -76,7 +95,11 @@
     <!-- Lightbox Overlay -->
     <div id="lightbox">
         <span class="close" onclick="closeLightbox()">&times;</span>
+        
+        <!-- Navigation Buttons -->
+        <a class="prev" onclick="changeImage(-1)">&#10094;</a>
         <img id="lightbox-img" src="" alt="Enlarged view">
+        <a class="next" onclick="changeImage(1)">&#10095;</a>
     </div>
 
     <section id="home">
@@ -86,9 +109,10 @@
 
     <section id="pictures">
         <h2>Picture Gallery</h2>
-        <!-- Added gallery-img class to target images for the lightbox -->
+        <!-- Using classes for all images -->
         <img src="https://picsum.photos/id/1025/800/400" alt="A pug wrapped in a blanket" class="gallery-img">
         <img src="https://picsum.photos/id/1012/800/400" alt="A dog in the mountains" class="gallery-img">
+        <img src="https://picsum.photos/id/1062/800/400" alt="A dog on the grass" class="gallery-img">
     </section>
 
     <section id="video">
@@ -116,26 +140,55 @@
     <script>
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
+        const images = document.querySelectorAll('.gallery-img');
+        let currentIndex = 0;
 
-        // Select all gallery images and add click event
-        document.querySelectorAll('.gallery-img').forEach(image => {
+        // Initialize gallery: Add click event and index to each image
+        images.forEach((image, index) => {
             image.onclick = () => {
-                lightbox.style.display = 'flex';
-                lightboxImg.src = image.src;
+                currentIndex = index; // Keep track of which image was clicked
+                openLightbox(image.src);
             };
         });
 
-        // Function to close the lightbox
+        function openLightbox(src) {
+            lightbox.style.display = 'flex';
+            lightboxImg.src = src;
+        }
+
         function closeLightbox() {
             lightbox.style.display = 'none';
         }
 
-        // Close lightbox if user clicks outside the image
+        // Logic to move to Next or Previous image
+        function changeImage(direction) {
+            currentIndex += direction;
+
+            // Loop back to the beginning or end
+            if (currentIndex >= images.length) {
+                currentIndex = 0;
+            } else if (currentIndex < 0) {
+                currentIndex = images.length - 1;
+            }
+
+            lightboxImg.src = images[currentIndex].src;
+        }
+
+        // Close lightbox if user clicks background (but not on image or buttons)
         lightbox.onclick = (e) => {
-            if (e.target !== lightboxImg) {
+            if (e.target === lightbox || e.target.className === 'close') {
                 closeLightbox();
             }
         };
+
+        // Keyboard support for better UX
+        document.addEventListener('keydown', (e) => {
+            if (lightbox.style.display === 'flex') {
+                if (e.key === "ArrowLeft") changeImage(-1);
+                if (e.key === "ArrowRight") changeImage(1);
+                if (e.key === "Escape") closeLightbox();
+            }
+        });
     </script>
 </body>
 </html>
